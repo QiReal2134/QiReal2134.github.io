@@ -2,7 +2,7 @@
 
 一个纯静态的个人主页：灵动岛导航、深浅色主题切换、黑灰渐变背景。无任何框架和构建工具。
 
-**在线访问**：https://qireal2134.github.io/HumanBlog/ （部署后可用）
+**在线访问**：https://qireal2134.github.io/ （GitHub Pages 个人主页，main 分支推送后自动部署）
 
 ## 自定义
 
