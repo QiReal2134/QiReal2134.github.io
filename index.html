@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>个人主页</title>
+  <link rel="icon" type="image/jpeg" href="avatar.jpg">
+  <script src="config.js"></script>
+  <script>
+    document.documentElement.dataset.theme =
+      localStorage.getItem("theme") || window.SITE_CONFIG.defaultTheme;
+    document.title = window.SITE_CONFIG.title;
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- 灵动岛导航 -->
+  <header class="island">
+    <a class="logo" href="#">
+      <span class="logo-dot"></span>
+      <span id="logoText"></span>
+    </a>
+
+    <nav class="nav-links" id="navLinks"></nav>
+
+    <button class="theme-toggle" id="themeToggle" aria-label="切换深浅色" title="切换深浅色">
+      <svg class="icon-sun" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- 主区：头像 + 简介 -->
+  <main class="hero">
+    <div class="avatar-wrap">
+      <img class="avatar" id="avatar" src="avatar.jpg" alt="我的头像">
+    </div>
+
+    <div class="intro">
+      <h1 class="name" id="name"></h1>
+      <p class="tagline" id="tagline"></p>
+      <p class="bio" id="bio"></p>
+      <p class="status"><span class="status-dot"></span><span id="statusText"></span></p>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <span id="footerText"></span>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
