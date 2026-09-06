@@ -24,8 +24,8 @@ window.SITE_CONFIG = {
 
   // 导航链接（可增删改）
   navLinks: [
-    { label: "首页", href: "#" },
-    { label: "作品", href: "#works" },
+    { label: "首页", href: "index.html" },
+    { label: "作品", href: "works.html" },
     { label: "关于", href: "#about" },
   ],
 
@@ -34,4 +34,28 @@ window.SITE_CONFIG = {
 
   // 默认主题："dark" 或 "light"（用户切换后会记住用户的选择）
   defaultTheme: "dark",
+
+  // ===== 作品页设置 =====
+  works: {
+    // 自动拉取这个 GitHub 账号的所有公开仓库
+    githubUser: "QiReal2134",
+
+    // 不想展示的仓库（比如主页仓库本身）
+    excludeRepos: ["QiReal2134.github.io"],
+
+    // 是否展示 fork 来的仓库
+    showForks: false,
+
+    // 仓库卡片背景图：自动在仓库的 /png 目录下按顺序找这些文件名
+    cardImageNames: ["background.png", "background.jpg", "background.jpeg", "background.webp"],
+
+    // 仓库里没有背景图时显示的默认图
+    cardFallbackImage: "avatar.jpg",
+  },
+
+  // ===== 雪花飘落动效 =====
+  snow: {
+    enabled: true,   // 改成 false 关闭雪花
+    count: 70,       // 雪花数量
+  },
 };

@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>个人主页</title>
+  <title>作品详情 · Qireal</title>
   <link rel="icon" type="image/jpeg" href="avatar.jpg">
   <script src="config.js"></script>
   <script>
     document.documentElement.dataset.theme =
       localStorage.getItem("theme") || window.SITE_CONFIG.defaultTheme;
-    document.title = window.SITE_CONFIG.title;
   </script>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -36,18 +35,20 @@
     </button>
   </header>
 
-  <!-- 主区：头像 + 简介 -->
-  <main class="hero">
-    <div class="avatar-wrap">
-      <img class="avatar" id="avatar" src="avatar.jpg" alt="我的头像">
-    </div>
+  <!-- 作品详情 -->
+  <main class="work-page">
+    <a class="back-link" href="works.html">← 返回作品列表</a>
 
-    <div class="intro">
-      <h1 class="name" id="name"></h1>
-      <p class="tagline" id="tagline"></p>
-      <p class="bio" id="bio"></p>
-      <p class="status"><span class="status-dot"></span><span id="statusText"></span></p>
-    </div>
+    <div class="work-hero"><img id="workBg" alt="作品背景图"></div>
+    <h1 class="work-name" id="workName">加载中…</h1>
+    <p class="work-desc" id="workDesc"></p>
+    <div class="work-meta" id="workMeta"></div>
+
+    <h2 class="work-section-title">下载</h2>
+    <div class="dl-buttons" id="dlButtons"></div>
+
+    <h2 class="work-section-title">更新日志</h2>
+    <div id="changelog"><div class="release-empty">正在加载 Release 信息…</div></div>
   </main>
 
   <footer class="footer">
@@ -56,5 +57,6 @@
 
   <script src="script.js"></script>
   <script src="snow.js"></script>
+  <script src="work.js"></script>
 </body>
 </html>
