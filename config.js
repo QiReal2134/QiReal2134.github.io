@@ -65,7 +65,7 @@ window.SITE_CONFIG = {
     showCardImage: false,
 
     // 是否展示作品详情页顶部的大图
-    showDetailImage: true,
+    showDetailImage: false,
 
     // 仓库卡片背景图：自动在仓库的 /png 目录下按顺序找这些文件名
     // （仅在 showCardImage 为 true 时生效）
