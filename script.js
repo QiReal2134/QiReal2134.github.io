@@ -11,23 +11,43 @@ const track = document.getElementById("pagesTrack");
 const viewport = document.getElementById("pagesViewport");
 const navButtons = [];
 
-if (nav && track) {
+if (nav) {
   nav.innerHTML = "";
   cfg.navLinks.forEach((link, i) => {
     const a = document.createElement("a");
     a.className = "nav-link";
-    a.href = "javascript:void(0)";
     a.textContent = link.label;
-    a.dataset.page = link.page;
-    a.addEventListener("click", () => goTo(i));
+    if (track) {
+      // 单页模式：点击切换屏
+      a.href = "javascript:void(0)";
+      a.dataset.page = link.page;
+      a.addEventListener("click", () => goTo(i));
+    } else {
+      // 独立页面（如作品详情页）：跳回首页对应屏
+      a.href = "index.html#" + link.page;
+      if (link.page === currentPageOnStandalonePage()) a.classList.add("active");
+    }
     nav.appendChild(a);
     navButtons.push(a);
   });
 }
 
+// 独立页面（详情页等）上，判断当前该高亮哪一项
+function currentPageOnStandalonePage() {
+  return "works";
+}
+
 // ---------- 滑动导航 ----------
 let current = 0;
-let animating = false;
+
+// 点 Logo 回到首页屏
+const logoLink = document.getElementById("logoLink");
+if (logoLink && track) {
+  logoLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    goTo(0);
+  });
+}
 
 function pageIndex(name) {
   return cfg.navLinks.findIndex((l) => l.page === name);
