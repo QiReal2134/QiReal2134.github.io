@@ -58,11 +58,13 @@
         (r) => !exclude.includes(r.name)
       );
 
-      // 探测每张卡片的背景图（结果写回缓存，避免重复探测）
+      // 并发探测所有卡片的背景图（缓存命中的仓库直接跳过网络请求）
       const imgCache = (data && data.images) || {};
-      for (const r of picked) {
-        r.cardImage = await findBackground(r.name, r.default_branch, imgCache);
-      }
+      await Promise.all(
+        picked.map(async (r) => {
+          r.cardImage = await findBackground(r.name, r.default_branch, imgCache);
+        })
+      );
 
       // 组装 JSON 并缓存
       data = {

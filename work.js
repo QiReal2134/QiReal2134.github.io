@@ -153,12 +153,12 @@
     else nameEl.textContent = repo;
 
     try {
-      // 2. 后台刷新
+      // 2. 后台刷新：仓库信息先取（需要默认分支），其余两项并发
       const info = await fetchRetry(`https://api.github.com/repos/${user}/${repo}`);
-      const releasesRaw = await fetchRetry(
-        `https://api.github.com/repos/${user}/${repo}/releases?per_page=20`
-      );
-      const bg = await findBackground(info.default_branch, data || {});
+      const [releasesRaw, bg] = await Promise.all([
+        fetchRetry(`https://api.github.com/repos/${user}/${repo}/releases?per_page=20`),
+        findBackground(info.default_branch, data || {}),
+      ]);
 
       const fresh = {
         info: {

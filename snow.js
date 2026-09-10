@@ -11,12 +11,18 @@
   document.body.appendChild(canvas);
   const ctx = canvas.getContext("2d");
 
-  let W = 0, H = 0;
+  let W = 0, H = 0, running = true;
   function resize() {
     W = canvas.width = window.innerWidth;
     H = canvas.height = window.innerHeight;
   }
-  window.addEventListener("resize", resize);
+
+  // 缩放防抖：避免拖动窗口时每帧重设画布尺寸
+  let resizeTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resize, 150);
+  });
   resize();
 
   const flakes = [];
@@ -25,21 +31,35 @@
     flakes.push({
       x: Math.random() * W,
       y: Math.random() * H,
-      r: Math.random() * 2.2 + 0.8,          // 半径
-      speed: Math.random() * 0.7 + 0.35,      // 下落速度
-      sway: Math.random() * Math.PI * 2,      // 左右摆动相位
+      r: Math.random() * 2.2 + 0.8,
+      speed: Math.random() * 0.7 + 0.35,
+      sway: Math.random() * Math.PI * 2,
       swaySpeed: Math.random() * 0.02 + 0.008,
-      alpha: Math.random() * 0.35 + 0.35,     // 透明度
+      alpha: Math.random() * 0.35 + 0.35,
     });
   }
 
+  let colorCache = null;
   function snowColor() {
-    return document.documentElement.dataset.theme === "light"
+    if (colorCache) return colorCache;
+    colorCache = document.documentElement.dataset.theme === "light"
       ? "rgba(90, 100, 125, 0.55)"
       : "rgba(255, 255, 255, 0.7)";
+    return colorCache;
   }
+  // 主题切换后让颜色缓存失效
+  new MutationObserver(() => { colorCache = null; })
+    .observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  // 页面切到后台时暂停动画，省电省 CPU
+  document.addEventListener("visibilitychange", () => {
+    const wasRunning = running;
+    running = !document.hidden;
+    if (running && !wasRunning) requestAnimationFrame(tick);
+  });
 
   function tick() {
+    if (!running) return;
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = snowColor();
     for (const f of flakes) {
