@@ -11,7 +11,14 @@
   const showCardImage = cfg.showCardImage !== false;
   const imgNames = cfg.cardImageNames || ["background.png"];
   const fallbackImg = cfg.cardFallbackImage || "avatar.jpg";
-  const CACHE_KEY = "works_json_cache_" + (showCardImage ? "img" : "noimg");
+  const CACHE_VERSION = cfg.cacheVersion || 1;
+  // 缓存 key 带上配置版本与账号：换账号/换配置后不会先渲染出上一个账号的缓存
+  const CACHE_KEY =
+    "works_json_cache_v" + CACHE_VERSION + "_" + user + "_" + (showCardImage ? "img" : "noimg");
+  // 缓存新鲜期：这段时间内直接吃缓存，不再请求 GitHub（匿名 API 每小时只有 60 次）
+  const FRESH_MS = 5 * 60 * 1000;
+  // 背景图「没找到」的负缓存时长：过期后允许重新探测，仓库后补图片也能被发现
+  const MISS_MS = 24 * 60 * 60 * 1000;
 
   let started = false;
 
@@ -25,27 +32,57 @@
     });
   }
 
+  // 读背景图缓存：命中 { url } 返回绝对 URL；{ miss } 未超 24 小时返回默认图；
+  // 无记录或负缓存已过期返回 undefined，表示需要重新探测
+  // 注意：另一份实现在 work.js 的 findBackground/readBgCache，改这里要同步改那边
+  function readBgCache(cache, key) {
+    const rec = cache[key];
+    // 旧版本缓存里可能是字符串形状，类型对不上就当没有记录
+    if (!rec || typeof rec !== "object") return undefined;
+    if (rec.url) return rec.url;
+    if (rec.miss && Date.now() - rec.miss < MISS_MS) return fallbackImg;
+    return undefined;
+  }
+
   async function findBackground(repo, branch, cache) {
-    const key = repo + "@" + branch;
-    if (cache[key]) return cache[key];
+    // 分支为空时用 main 兜底，缓存 key 用 仓库名@分支
+    const br = branch || "main";
+    const key = repo + "@" + br;
+    const hit = readBgCache(cache, key);
+    if (hit !== undefined) return hit;
     for (const name of imgNames) {
-      const url = `https://raw.githubusercontent.com/${user}/${repo}/${branch}/png/${name}`;
+      const url = `https://raw.githubusercontent.com/${user}/${repo}/${br}/png/${name}`;
       if (await imageExists(url)) {
-        cache[key] = url;
+        cache[key] = { url: url };
         return url;
       }
     }
-    cache[key] = fallbackImg;
+    // 全部失败：写负缓存（而不是把默认图当成命中，否则永远不再探测）
+    cache[key] = { miss: Date.now() };
     return fallbackImg;
   }
 
+  // 缓存是否仍在新鲜期内（updated_at 缺失或非法一律视为不新鲜）
+  function isFresh(data) {
+    const ts = Date.parse((data && data.updated_at) || "");
+    if (!Number.isFinite(ts)) return false;
+    const age = Date.now() - ts;
+    return age >= 0 && age < FRESH_MS;
+  }
+
   async function loadWorks() {
-    // 先取本地缓存的 JSON，有就立即渲染
+    // 先取本地缓存的 JSON：形状不对（旧版本残留/被改坏）一律丢弃，否则渲染时会崩
     let data = null;
     try {
-      data = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+      const raw = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+      if (raw && Array.isArray(raw.repos)) data = raw;
     } catch (e) { /* 缓存损坏则忽略 */ }
-    if (data) render(data);
+
+    if (data) {
+      render(data);
+      // 新鲜期内直接用缓存，不再请求 GitHub（省匿名配额的关键）
+      if (isFresh(data)) return;
+    }
 
     try {
       // 后台刷新：拉取全部公开仓库
@@ -55,15 +92,18 @@
         if (!r.ok) throw new Error("GitHub API " + r.status);
         return r.json();
       });
+      if (!Array.isArray(repos)) throw new Error("GitHub API 返回格式异常");
 
+      // 短路顺序：先判断是否需要过滤，再判断是否在排除名单里
       const picked = repos.filter(
-        (r) => !r.fork || showForks
+        (r) => showForks || !r.fork
       ).filter(
         (r) => !exclude.includes(r.name)
       );
 
       // 并发探测所有卡片的背景图（不需要图片时完全跳过，省流量省请求）
-      const imgCache = (data && data.images) || {};
+      const imgCache =
+        data && data.images && typeof data.images === "object" ? data.images : {};
       if (showCardImage) {
         await Promise.all(
           picked.map(async (r) => {
@@ -73,7 +113,7 @@
       }
 
       // 组装 JSON 并缓存
-      data = {
+      const fresh = {
         updated_at: new Date().toISOString(),
         images: imgCache,
         repos: picked.map((r) => ({
@@ -87,7 +127,11 @@
           cardImage: r.cardImage,
         })),
       };
-      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      data = fresh;
+      // 写缓存单独包 try/catch：配额超限或隐私模式不该影响已经取回的数据
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(fresh));
+      } catch (e) { /* 写入失败忽略 */ }
     } catch (err) {
       if (!data) {
         grid.innerHTML =
@@ -100,21 +144,39 @@
   }
 
   function render(data) {
-    if (!data.repos.length) {
+    const repos = (data && data.repos) || [];
+    if (!repos.length) {
       grid.innerHTML = '<div class="works-loading">还没有公开仓库。</div>';
       return;
     }
     grid.innerHTML = "";
-    for (const r of data.repos) {
+    for (const r of repos) {
       const a = document.createElement("a");
       a.className = "work-card" + (showCardImage ? "" : " no-image");
       a.href = "work.html?repo=" + encodeURIComponent(r.name);
-      a.innerHTML = `
-        ${showCardImage ? `<div class="work-card-img"><img src="${r.cardImage}" alt="${r.name} 背景图" loading="lazy"></div>` : ""}
-        <div class="work-card-body">
-          <div class="work-card-name">${r.name}</div>
-          <div class="work-card-desc">${r.description || "暂无描述"}</div>
-        </div>`;
+      // 用 DOM API 构建卡片：仓库名/描述是外部文本，只能走 textContent，
+      // 属性也用赋值（不经过 HTML 解析），彻底消除注入面
+      if (showCardImage) {
+        const imgWrap = document.createElement("div");
+        imgWrap.className = "work-card-img";
+        const img = document.createElement("img");
+        img.src = r.cardImage || fallbackImg;
+        img.alt = r.name + " 背景图";
+        img.loading = "lazy";
+        imgWrap.appendChild(img);
+        a.appendChild(imgWrap);
+      }
+      const body = document.createElement("div");
+      body.className = "work-card-body";
+      const nameDiv = document.createElement("div");
+      nameDiv.className = "work-card-name";
+      nameDiv.textContent = r.name;
+      const descDiv = document.createElement("div");
+      descDiv.className = "work-card-desc";
+      descDiv.textContent = r.description || "暂无描述";
+      body.appendChild(nameDiv);
+      body.appendChild(descDiv);
+      a.appendChild(body);
       grid.appendChild(a);
     }
   }
@@ -123,7 +185,10 @@
   function startOnce() {
     if (started) return;
     started = true;
-    loadWorks();
+    loadWorks().catch(() => {
+      grid.innerHTML =
+        '<div class="works-loading">GitHub 加载失败，请稍后刷新重试。</div>';
+    });
   }
 
   document.addEventListener("pagechange", (e) => {
@@ -132,6 +197,9 @@
 
   // 如果打开时就直接落在作品屏，立即加载
   if ((location.hash || "").replace("#", "") === "works") startOnce();
-  // 兜底：3 秒后仍未加载则直接加载（避免事件时序问题）
-  setTimeout(startOnce, 3000);
+  // 兜底：3 秒后事件若仍未到，且当前确实在作品屏才加载
+  // （不要在首页就无条件请求 GitHub，那会击穿懒加载并白耗匿名配额）
+  setTimeout(() => {
+    if ((location.hash || "").replace("#", "") === "works") startOnce();
+  }, 3000);
 })();
