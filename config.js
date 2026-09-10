@@ -22,12 +22,27 @@ window.SITE_CONFIG = {
   // 状态行文字
   status: "当前状态：正在构建新东西…",
 
-  // 导航链接（可增删改）
+  // 顶部导航（三屏对应三个 page，左右滑动切换）
   navLinks: [
-    { label: "首页", href: "index.html" },
-    { label: "作品", href: "works.html" },
-    { label: "关于", href: "#about" },
+    { label: "首页", page: "home" },
+    { label: "作品", page: "works" },
+    { label: "关于", page: "about" },
   ],
+
+  // 关于页内容
+  about: {
+    title: "关于我",
+    paragraphs: [
+      "你好，我是 Qireal，一名喜欢折腾技术的开发者。平时喜欢研究各种工具、写点小项目，也喜欢把过程中踩过的坑和学到的东西记下来。",
+      "这个站点是我自己手写的一个纯静态页面，没有用任何框架。它自动同步我的 GitHub 公开仓库，所以你在「作品」里看到的内容都是实时更新的。",
+      "如果你对我的项目感兴趣，或者想交流点什么，欢迎通过下面的方式找到我。",
+    ],
+    // 关于页的链接按钮（可增删改）
+    links: [
+      { label: "GitHub", href: "https://github.com/QiReal2134" },
+      { label: "给我发邮件", href: "mailto:qireal2134@gmail.com" },
+    ],
+  },
 
   // 页脚文字
   footer: "© 2026 Qireal · HumanBlog",

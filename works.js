@@ -1,4 +1,5 @@
 // 作品列表：自动拉取 GitHub 公开仓库 → 组装 JSON（含卡片背景图探测）→ 渲染
+// 缓存策略：先渲染缓存，再后台刷新；首次进入作品屏时才发起请求
 (function () {
   const cfg = (window.SITE_CONFIG || {}).works || {};
   const user = cfg.githubUser;
@@ -10,6 +11,8 @@
   const imgNames = cfg.cardImageNames || ["background.png"];
   const fallbackImg = cfg.cardFallbackImage || "avatar.jpg";
   const CACHE_KEY = "works_json_cache";
+
+  let started = false;
 
   // 从仓库 /png 目录探测卡片背景图
   function imageExists(url) {
@@ -90,7 +93,6 @@
       }
       // 网络失败时已有缓存展示，不打扰用户
     }
-    // 后台刷新完成后重渲染（内容变化才看得出来）
     render(data);
   }
 
@@ -114,5 +116,19 @@
     }
   }
 
-  loadWorks();
+  // 首次切到作品屏时才加载（加快首屏）
+  function startOnce() {
+    if (started) return;
+    started = true;
+    loadWorks();
+  }
+
+  document.addEventListener("pagechange", (e) => {
+    if (e.detail && e.detail.page === "works") startOnce();
+  });
+
+  // 如果打开时就直接落在作品屏，立即加载
+  if ((location.hash || "").replace("#", "") === "works") startOnce();
+  // 兜底：3 秒后仍未加载则直接加载（避免事件时序问题）
+  setTimeout(startOnce, 3000);
 })();

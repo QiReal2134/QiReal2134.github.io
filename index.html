@@ -6,7 +6,9 @@
   <title>个人主页</title>
   <link rel="icon" type="image/jpeg" href="avatar.jpg">
   <link rel="preconnect" href="https://api.github.com">
+  <link rel="preconnect" href="https://raw.githubusercontent.com">
   <link rel="dns-prefetch" href="https://api.github.com">
+  <link rel="dns-prefetch" href="https://raw.githubusercontent.com">
   <script src="config.js"></script>
   <script>
     document.documentElement.dataset.theme =
@@ -20,7 +22,7 @@
 
   <!-- 灵动岛导航 -->
   <header class="island">
-    <a class="logo" href="index.html">
+    <a class="logo" href="#" id="logoLink">
       <span class="logo-dot"></span>
       <span id="logoText"></span>
     </a>
@@ -38,19 +40,48 @@
     </button>
   </header>
 
-  <!-- 主区：头像 + 简介 -->
-  <main class="hero">
-    <div class="avatar-wrap">
-      <img class="avatar" id="avatar" src="avatar.jpg" alt="我的头像">
-    </div>
+  <!-- 三屏横向滑动容器 -->
+  <div class="pages-viewport" id="pagesViewport">
+    <div class="pages-track" id="pagesTrack">
 
-    <div class="intro">
-      <h1 class="name" id="name"></h1>
-      <p class="tagline" id="tagline"></p>
-      <p class="bio" id="bio"></p>
-      <p class="status"><span class="status-dot"></span><span id="statusText"></span></p>
+      <!-- 第一屏：首页 -->
+      <section class="page" data-page="home">
+        <main class="hero">
+          <div class="avatar-wrap">
+            <img class="avatar" id="avatar" src="avatar.jpg" alt="我的头像">
+          </div>
+          <div class="intro">
+            <h1 class="name" id="name"></h1>
+            <p class="tagline" id="tagline"></p>
+            <p class="bio" id="bio"></p>
+            <p class="status"><span class="status-dot"></span><span id="statusText"></span></p>
+          </div>
+        </main>
+        <p class="swipe-hint">← 左右滑动查看更多 →</p>
+      </section>
+
+      <!-- 第二屏：作品 -->
+      <section class="page" data-page="works">
+        <main class="works">
+          <h1 class="works-title">我的作品</h1>
+          <p class="works-sub">自动同步 GitHub 公开仓库 · 点击卡片查看详情与下载</p>
+          <div class="works-grid" id="worksGrid">
+            <div class="works-loading">正在从 GitHub 加载仓库…</div>
+          </div>
+        </main>
+      </section>
+
+      <!-- 第三屏：关于 -->
+      <section class="page" data-page="about">
+        <main class="about">
+          <h1 class="works-title" id="aboutTitle"></h1>
+          <div id="aboutBody"></div>
+          <div class="dl-buttons" id="aboutLinks"></div>
+        </main>
+      </section>
+
     </div>
-  </main>
+  </div>
 
   <footer class="footer">
     <span id="footerText"></span>
@@ -58,5 +89,6 @@
 
   <script src="script.js"></script>
   <script src="snow.js"></script>
+  <script src="works.js"></script>
 </body>
 </html>
