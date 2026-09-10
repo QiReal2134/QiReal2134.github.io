@@ -22,7 +22,9 @@ window.SITE_CONFIG = {
   // 状态行文字
   status: "当前状态：正在构建新东西…",
 
-  // 顶部导航（三屏对应三个 page，左右滑动切换）
+  // 顶部导航
+  // 顺序必须与 index.html 中 .page 元素的顺序一致；
+  // page 值同时用作 URL hash（如 index.html#works）和跨模块的 pagechange 事件名
   navLinks: [
     { label: "首页", page: "home" },
     { label: "作品", page: "works" },
@@ -65,19 +67,25 @@ window.SITE_CONFIG = {
     showCardImage: false,
 
     // 是否展示作品详情页顶部的大图
+    // 同时也控制详情页是否发起背景图探测（关闭时省一次网络往返）
     showDetailImage: false,
 
     // 仓库卡片背景图：自动在仓库的 /png 目录下按顺序找这些文件名
-    // （仅在 showCardImage 为 true 时生效）
+    // （需先把 showCardImage 设为 true，默认关闭时完全不请求图片）
     cardImageNames: ["background.png", "background.jpg", "background.jpeg", "background.webp"],
 
     // 仓库里没有背景图时显示的默认图
+    // （需先把 showCardImage 设为 true，默认关闭时完全不请求图片）
     cardFallbackImage: "avatar.jpg",
+
+    // 缓存结构版本；改动缓存里的字段时 +1，用户端旧缓存会自动失效
+    cacheVersion: 1,
   },
 
   // ===== 雪花飘落动效 =====
   snow: {
     enabled: true,   // 改成 false 关闭雪花
-    count: 70,       // 雪花数量
+    // 雪花数量上限（实际取 min(count, 屏幕宽度/10)，且不少于 10 片；要关闭请用 enabled: false）
+    count: 70,
   },
 };
