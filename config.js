@@ -61,7 +61,14 @@ window.SITE_CONFIG = {
     // 是否展示 fork 来的仓库
     showForks: false,
 
+    // 是否展示卡片背景图（false = 只显示仓库名和描述，不请求任何图片）
+    showCardImage: false,
+
+    // 是否展示作品详情页顶部的大图
+    showDetailImage: true,
+
     // 仓库卡片背景图：自动在仓库的 /png 目录下按顺序找这些文件名
+    // （仅在 showCardImage 为 true 时生效）
     cardImageNames: ["background.png", "background.jpg", "background.jpeg", "background.webp"],
 
     // 仓库里没有背景图时显示的默认图

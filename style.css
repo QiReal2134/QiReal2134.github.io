@@ -502,6 +502,19 @@ html.theme-animating .meta-chip {
   padding: 16px 18px 18px;
 }
 
+/* 不显示背景图时，卡片变成纯文字块，留白更舒展 */
+.work-card.no-image .work-card-body {
+  padding: 22px 24px 24px;
+}
+
+.work-card.no-image .work-card-name {
+  font-size: 18px;
+}
+
+.work-card.no-image .work-card-desc {
+  -webkit-line-clamp: 3;
+}
+
 .work-card-name {
   font-size: 17px;
   font-weight: 600;

@@ -5,6 +5,7 @@
   const user = cfg.githubUser;
   const imgNames = cfg.cardImageNames || ["background.png"];
   const fallbackImg = cfg.cardFallbackImage || "avatar.jpg";
+  const showDetailImage = cfg.showDetailImage !== false;
 
   const params = new URLSearchParams(location.search);
   const repo = params.get("repo");
@@ -81,7 +82,12 @@
     document.title = `${info.name} · Qireal`;
     nameEl.textContent = info.name;
     document.getElementById("workDesc").textContent = info.description || "暂无描述";
-    document.getElementById("workBg").src = data.bg;
+    if (showDetailImage) {
+      document.getElementById("workBg").src = data.bg;
+    } else {
+      const hero = document.getElementById("workBg").parentElement;
+      hero.style.display = "none";
+    }
 
     const meta = document.getElementById("workMeta");
     meta.innerHTML = "";
@@ -157,7 +163,8 @@
       const info = await fetchRetry(`https://api.github.com/repos/${user}/${repo}`);
       const [releasesRaw, bg] = await Promise.all([
         fetchRetry(`https://api.github.com/repos/${user}/${repo}/releases?per_page=20`),
-        findBackground(info.default_branch, data || {}),
+        // 不显示大图时不做图片探测，省一次网络往返
+        showDetailImage ? findBackground(info.default_branch, data || {}) : Promise.resolve(""),
       ]);
 
       const fresh = {

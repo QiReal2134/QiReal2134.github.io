@@ -8,9 +8,10 @@
 
   const exclude = cfg.excludeRepos || [];
   const showForks = !!cfg.showForks;
+  const showCardImage = cfg.showCardImage !== false;
   const imgNames = cfg.cardImageNames || ["background.png"];
   const fallbackImg = cfg.cardFallbackImage || "avatar.jpg";
-  const CACHE_KEY = "works_json_cache";
+  const CACHE_KEY = "works_json_cache_" + (showCardImage ? "img" : "noimg");
 
   let started = false;
 
@@ -61,13 +62,15 @@
         (r) => !exclude.includes(r.name)
       );
 
-      // 并发探测所有卡片的背景图（缓存命中的仓库直接跳过网络请求）
+      // 并发探测所有卡片的背景图（不需要图片时完全跳过，省流量省请求）
       const imgCache = (data && data.images) || {};
-      await Promise.all(
-        picked.map(async (r) => {
-          r.cardImage = await findBackground(r.name, r.default_branch, imgCache);
-        })
-      );
+      if (showCardImage) {
+        await Promise.all(
+          picked.map(async (r) => {
+            r.cardImage = await findBackground(r.name, r.default_branch, imgCache);
+          })
+        );
+      }
 
       // 组装 JSON 并缓存
       data = {
@@ -104,10 +107,10 @@
     grid.innerHTML = "";
     for (const r of data.repos) {
       const a = document.createElement("a");
-      a.className = "work-card";
+      a.className = "work-card" + (showCardImage ? "" : " no-image");
       a.href = "work.html?repo=" + encodeURIComponent(r.name);
       a.innerHTML = `
-        <div class="work-card-img"><img src="${r.cardImage}" alt="${r.name} 背景图" loading="lazy"></div>
+        ${showCardImage ? `<div class="work-card-img"><img src="${r.cardImage}" alt="${r.name} 背景图" loading="lazy"></div>` : ""}
         <div class="work-card-body">
           <div class="work-card-name">${r.name}</div>
           <div class="work-card-desc">${r.description || "暂无描述"}</div>
