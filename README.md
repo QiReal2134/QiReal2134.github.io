@@ -2,16 +2,16 @@
 
 一个纯静态的个人主页：单页三屏左右滑动（首页 / 作品 / 关于）、灵动岛导航、深浅色主题切换、雪花飘落动效、黑灰渐变背景。无任何框架和构建工具。
 
-**在线访问**：https://www.qireal.cn/ （经浪浪云 CDN 加速；GitHub Pages 源站为 qireal2134.github.io）
+**在线访问**：https://www.qireal.cn/ （经浪浪云 CDN 加速；GitHub Pages 源站为 QiReal2134.github.io）
 
 ## 功能
 
 - **单页三屏**：首页、作品、关于三屏一起渲染，点导航或左右拖动/滑动切换，带缓动动画；也支持键盘 ← → 方向键
-- **作品页自动同步**：自动拉取 GitHub 账号的全部公开仓库生成卡片，并在每个仓库的 `/png` 目录下自动寻找 `background.png/jpg/jpeg/webp` 作为卡片背景图
+- **作品页自动同步**：自动拉取 GitHub 账号的全部公开仓库生成卡片，并在每个仓库的 `/png` 目录下自动寻找 `background.png/jpg/jpeg/webp` 作为卡片背景图（需先在 config.js 把 `showCardImage` 设为 true，默认关闭时完全不请求图片）
 - **作品详情页**：点击卡片进入 `work.html?repo=仓库名`，读取该仓库的 Release 展示更新日志（含日期）和下载按钮
 - **缓存优先**：作品数据与详情页都先渲染本地缓存，再后台刷新，打开即有内容
 - **主题切换**：深浅色切换带 1.2 秒渐变过渡，选择会记住
-- **雪花动效**：Canvas 实现，页面切到后台自动暂停
+- **雪花动效**：Canvas 实现，页面切到后台自动暂停；系统开启「减少动态效果」（`prefers-reduced-motion: reduce`）时会自动禁用
 
 ## 自定义
 
@@ -42,5 +42,13 @@ work.js      作品详情：仓库信息 + Release 日志 + 下载按钮
 snow.js      雪花动效
 avatar.jpg   头像图片
 serve.js     本地预览小服务器（可选）
+CNAME        自定义域名（www.qireal.cn），GitHub Pages 靠它绑定域名
+.nojekyll    让 GitHub Pages 跳过 Jekyll 处理，保证下划线开头的文件也能正常发布
 ```
+
+## 部署与缓存
+
+**静态资源版本戳**：HTML 里引用的 `config.js` / `style.css` / `script.js` / `snow.js` / `works.js` / `work.js` 都带了 `?v=日期` 版本戳。源站与 CDN 对 HTML 和资源都缓存 10 分钟（`Cache-Control: max-age=600`），所以改动代码后，想让老访客立刻拿到新版本，把这几个文件引用里的 `?v=` 统一改成新日期即可。
+
+**缓存版本号**：`config.js` 里的 `works.cacheVersion`。当你改动 localStorage 里作品数据缓存的结构（例如给缓存对象加字段或删字段）时把它 +1，老访客浏览器里的旧缓存会自动失效；漏改的话旧缓存可能让页面卡在加载态。
 
