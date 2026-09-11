@@ -31,6 +31,14 @@ if (nav) {
     a.dataset.page = link.page;
     // 单页模式：真锚点，浏览器天然产生 hash 与历史记录；独立页面：跳回首页对应屏
     a.href = track ? "#" + link.page : "index.html#" + link.page;
+    if (track) {
+      // 锚点只在 hash 变化时才触发 hashchange。滑动或方向键换屏不会写 hash，
+      // 于是「滑回首页后再点作品」时 hash 已是 #works、浏览器什么都不做，点击就等于失灵。
+      // 这里在点击时补判断一次：hash 与目标相同（浏览器不会导航）就直接切屏。
+      a.addEventListener("click", () => {
+        if (location.hash === a.getAttribute("href")) goTo(i);
+      });
+    }
     // 独立页面（详情页等）上，判断当前该高亮哪一项
     if (!track && link.page === currentPageOnStandalonePage()) a.classList.add("active");
     nav.appendChild(a);
